@@ -51,6 +51,12 @@ var usersBySoundCloudId = {};
 var usersByMailchimpId = {};
 var usersMailruId = {};
 var usersByMendeleyId = {};
+
+var usersByDcId = {};
+var usersByWeiboId = {};
+var usersByRunKeeperId = {};
+var usersByMeetupId = {};
+
 var usersByLogin = {
   'brian@example.com': addUser({ login: 'brian@example.com', password: 'password'})
 };
@@ -59,6 +65,14 @@ everyauth.everymodule
   .findUserById( function (id, callback) {
     callback(null, usersById[id]);
   });
+
+everyauth.dailycred
+  .appId(conf.dc.appId)
+  .findOrCreateUser( function (session, accessToken, accessTokenExtra, dcUserMetadata) {
+    return usersByDcId[dcUserMetadata.id] ||
+      (usersByDcId[dcUserMetadata.id] = addUser('dailycred', dcUserMetadata));
+  })
+  .redirectPath('/');
 
 everyauth.azureacs
   .identityProviderUrl('https://acssample1.accesscontrol.windows.net/v2/wsfederation/')
@@ -271,7 +285,8 @@ everyauth.vimeo
 	.consumerSecret(conf.vimeo.consumerSecret)
 	.findOrCreateUser( function (sess, accessToken, accessSecret, vimeoUser) {
 		return usersByVimeoId[vimeoUser.id] ||
-			(usersByVimeoId[vimeoUser.id] = vimeoUser);
+
+      (usersByVimeoId[vimeoUser.id] = addUser('vimeo', vimeoUser));
 	})
 	.redirectPath('/')
 
@@ -379,6 +394,15 @@ everyauth.mendeley
   })
   .redirectPath('/');
 
+everyauth.runkeeper
+  .appId(conf.runkeeper.appId)
+  .appSecret(conf.runkeeper.appSecret)
+  .findOrCreateUser(function(sess, accessToken, accessSecret, user) {
+    return usersByRunKeeperId[user.userID] || (usersByRunKeeperId[user.userID] = addUser('runkeeper', user));
+  })
+  .redirectPath('/');
+
+
 everyauth
   .soundcloud
     .appId(conf.soundcloud.appId)
@@ -418,6 +442,35 @@ app.use(express.static(__dirname + '/public'))
   .use(express.cookieParser('htuayreve'))
   .use(express.session())
   .use(everyauth.middleware(app));
+
+    
+everyauth
+  .weibo
+    .appId(conf.weibo.appId)
+    .appSecret(conf.weibo.appSecret)
+    .findOrCreateUser( function (session, accessToken, accessTokenExtra, weiboUser){
+      return usersByWeiboId[weiboUser.uid] ||
+        (usersByWeiboId[weiboUser.uid] = addUser('weibo', weiboUser));
+    })
+    .redirectPath("/");
+
+everyauth.meetup
+  .appId(conf.meetup.appId)
+  .appSecret(conf.meetup.appSecret)
+  .findOrCreateUser(function(sess, accessToken, accessSecret, user) {
+    return usersByMeetupId[user.id] || (usersByMeetupId[user.id] = addUser('meetup', user));
+  })
+  .redirectPath('/');
+
+var app = express.createServer(
+    express.bodyParser()
+  , express.static(__dirname + "/public")
+  , express.favicon()
+  , express.cookieParser()
+  , express.session({ secret: 'htuayreve'})
+  , everyauth.middleware()
+);
+>>>>>>> 8e0787121f30521870732bdb14c41c7c24e9652d
 
 app.configure( function () {
   app.set('view engine', 'jade');

@@ -1,2 +1,9 @@
-node_modules/
-
+**.swp
+node_modules
+test/creds.js
+issues
+IRC.md
+playground.js
+CHANGES
+npm-debug.log
+.idea
